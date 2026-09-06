@@ -38,3 +38,9 @@ pub fn calculate_writer_config() -> (usize, usize) {
     println!("Memory per thread: {} Mb", (memory_per_thread/ 1024) / 1024);
     (num_threads, memory_per_thread)
 }
+
+pub fn calculate_commit_threshold(memory_per_thread: usize) -> usize {
+    let safety_margin = 15_000_000;
+    let effective_memory = memory_per_thread.saturating_sub(safety_margin);
+    (effective_memory / 3).max(1_000_000)
+}
