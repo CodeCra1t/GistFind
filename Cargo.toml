@@ -1,0 +1,8 @@
+[package]
+name = "GistFind"
+version = "0.2.1"
+edition = "2024"
+
+[dependencies]
+tantivy = "0.22"
+sysinfo = "0.30"

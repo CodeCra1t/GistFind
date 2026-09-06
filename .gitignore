@@ -1,0 +1,14 @@
+#Build artifacts
+/target
+
+#Generated search index (regenerated from source files)
+/storage_data
+
+#Test data - not needed for other users
+/test_docs
+test.py
+__pycache__
+*.pyc 
+
+#Temporary logs
+log.txt
