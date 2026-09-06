@@ -1,4 +1,5 @@
 # GistFind
+<<<<<<< HEAD
 
 Local, privacy-first file search engine with semantic query understanding — written in Rust.
 
@@ -80,3 +81,6 @@ Licensed under the [MIT License](LICENSE).
 ## Author
 
 Built solo by CodeCra1t, as a personal tool
+=======
+Local, privacy-first file search engine with semantic query understanding, fully written in Rust
+>>>>>>> 4bb939b40ec81750737e2294c98b76e3a8d20895

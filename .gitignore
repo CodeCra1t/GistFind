@@ -1,3 +1,4 @@
+
 #Build artifacts
 /target
 
@@ -8,7 +9,7 @@
 /test_docs
 test.py
 __pycache__
-*.pyc 
+*.pyc
 
 #Temporary logs
 log.txt
