@@ -1,5 +1,5 @@
 # GistFind
-<<<<<<< HEAD
+
 
 Local, privacy-first file search engine with semantic query understanding — written in Rust.
 
