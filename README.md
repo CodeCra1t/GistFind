@@ -1,11 +1,10 @@
 # GistFind
 
-
 Local, privacy-first file search engine with semantic query understanding — written in Rust.
 
 Find files by what's *inside* them, not just by their name. Fully offline, no cloud, no telemetry — your files never leave your machine.
 
-> **Status: Alpha (v0.2.1)** — core indexing and search pipeline is functional and stable, but many planned features (PDF/DOCX support, background file watching, fuzzy search) are not implemented yet. Not ready for production use.
+> **Status: Alpha (v0.2.2)** — core indexing and search pipeline is functional and stable, but many planned features (PDF/DOCX support, background file watching, fuzzy search) are not implemented yet. Not ready for production use.
 
 ## Why GistFind
 
@@ -16,7 +15,8 @@ Ever had a file somewhere on your disk and couldn't remember its name or where y
 - Full-text indexing powered by [tantivy](https://github.com/quickwit-oss/tantivy) (a Rust-native search engine library)
 - Recursive directory scanning
 - Adaptive resource configuration — automatically detects available RAM and CPU threads to configure the indexing engine, so it runs efficiently on both low-end laptops and powerful desktops without manual tuning
-- Incremental commits during indexing to avoid data loss on large batches
+- Memory-safe indexing — the engine tracks how much data has been buffered since the last commit and automatically flushes to disk before hitting memory limits, adapting to available RAM in real time
+- Automatic chunking for oversized files — very large files are split instead of risking a memory spike or crash
 - Storage-efficient schema: file content is indexed with positions (enabling phrase search) but not stored raw, keeping the index size well below the size of the indexed text
 - Supported file types: `.txt`, `.md`, `.rs`, `.json`, `.toml`, `.log`
 
@@ -43,7 +43,7 @@ Ever had a file somewhere on your disk and couldn't remember its name or where y
 
 ```bash
 git clone https://github.com/CodeCra1t/GistFind
-cd gistfind
+cd GistFind
 cargo build --release
 ```
 
@@ -65,8 +65,9 @@ By default, GistFind scans `./test_docs` and stores its index in `./storage_data
 
 ## Roadmap
 
-- [ ] Fix silent error swallowing → done (errors are now logged, not ignored)
-- [ ] Byte-based adaptive commit thresholds (instead of a fixed file count)
+- [x] Fix silent error swallowing
+- [x] Byte-based adaptive commit thresholds (instead of a fixed file count)
+- [x] Automatic chunking for oversized files
 - [ ] Parallel directory scanning (`jwalk` + `rayon`)
 - [ ] PDF and DOCX text extraction
 - [ ] Background file watcher for incremental re-indexing (`notify` crate)
@@ -80,7 +81,4 @@ Licensed under the [MIT License](LICENSE).
 
 ## Author
 
-Built solo by CodeCra1t, as a personal tool
-=======
-Local, privacy-first file search engine with semantic query understanding, fully written in Rust
->>>>>>> 4bb939b40ec81750737e2294c98b76e3a8d20895
+Built solo by CodeCra1t, as a personal tool. Feedback and issues are welcome.
