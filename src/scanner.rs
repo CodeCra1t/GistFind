@@ -3,7 +3,6 @@ use std::io::{self, BufRead, BufReader};
 use std::path::Path;
 use std::collections::VecDeque;
 
-// Умный распределитель: решает, как читать файл
 fn read_safe_content(path: &Path) -> io::Result<String> {
     let is_log = path.extension().and_then(|s| s.to_str()) == Some("log");
 
@@ -90,7 +89,7 @@ where
                 if is_supported_file(&path) {
                     match read_safe_content(&path) {
                         Ok(content) => f(&path,&content),
-                        Err(e) => eprintln!("[WARN] Can not file {}: {}", path.display(), e),
+                        Err(e) => eprintln!("[WARN] Can not index file {}: {}   (check if it supported in readme.md)", path.display(), e),
                     }
                 }else {
                     eprintln!("[SKIP] Unsupported file type: {}", path.display());
