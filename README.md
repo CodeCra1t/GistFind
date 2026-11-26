@@ -4,7 +4,7 @@ Local, privacy-first file search engine with semantic query understanding — wr
 
 Find files by what's *inside* them, not just by their name. Fully offline, no cloud, no telemetry — your files never leave your machine.
 
-> **Status: Alpha (v0.2.1)** — core indexing and search pipeline is functional and stable, but many planned features (PDF/DOCX support, background file watching, fuzzy search) are not implemented yet. Not ready for production use.
+> **Status: Alpha (v0.2.4)** — core indexing and search pipeline is functional and stable, but many planned features (PDF/DOCX support, background file watching, fuzzy search) are not implemented yet. Not ready for production use.
 
 ## Why GistFind
 
@@ -48,23 +48,52 @@ cargo build --release
 
 ### Usage
 
-Index a directory:
+Run without arguments to start the interactive mode:
 
 ```bash
-cargo run -- index
+cargo run --release
 ```
 
-Search the index:
+```text
+gistfind> index                  rebuild the index from the scan folder
+gistfind> scan "D:\Thesis"       change the scan folder (quotes allowed)
+gistfind> scan                   show the current scan folder
+gistfind> neural network         search the index
+gistfind> find index             search for the word "index" itself
+gistfind> quit
+```
+
+The first word decides whether a line is a command (`index`, `scan`, `find`, `help`, `quit`).
+Anything else is a search query. The scan folder changed with `scan` lasts only for the current session.
+
+### Ignoring files: `.gistignore`
+
+Put a file named `.gistignore` in the root of the folder you scan. Its rules work like `.gitignore`:
+
+```text
+# comments and empty lines are skipped
+node_modules/        a folder with this name, anywhere below the root
+*.log                any file ending in .log
+/drafts              only the drafts folder in the root
+docs/private/**      everything under docs/private
+!keep.log            re-include a file excluded by an earlier rule
+```
+
+Ignored folders are not entered at all, so they cost no reading time. Only the `.gistignore` in the scan root is read; nested ones are not supported yet.
+
+One-shot commands also work:
 
 ```bash
-cargo run -- <your search query>
+cargo run --release -- index
+cargo run --release -- <your search query>
 ```
 
 By default, GistFind scans `./test_docs` and stores its index in `./storage_data`. These paths are configured in `src/config.rs`.
+A new index is built next to the old one and replaces it only after a successful scan, so a failed scan never deletes the existing index.
 
 ## Roadmap
 
-- [ ] Fix silent error swallowing → done (errors are now logged, not ignored)
+- [x] Fix silent error swallowing (errors are now logged and counted)
 - [ ] Byte-based adaptive commit thresholds (instead of a fixed file count)
 - [ ] Parallel directory scanning (`jwalk` + `rayon`)
 - [ ] PDF and DOCX text extraction
@@ -80,6 +109,3 @@ Licensed under the [MIT License](LICENSE).
 ## Author
 
 Built solo by CodeCra1t, as a personal tool
-=======
-Local, privacy-first file search engine with semantic query understanding, fully written in Rust
->>>>>>> 4bb939b40ec81750737e2294c98b76e3a8d20895

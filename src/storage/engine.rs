@@ -16,6 +16,12 @@ pub struct SearchEngine {
 }
 
 impl SearchEngine {
+    /// Opens an existing index for searching. No writer is created, so the
+    /// writer settings do not matter here.
+    pub fn open_for_search<P: AsRef<Path>>(index_path: P) -> tantivy::Result<Self> {
+        Self::new(index_path, 1, 15_000_000)
+    }
+
     pub fn new<P: AsRef<Path>>(index_path: P, num_threads: usize, memory_per_thread: usize,) -> tantivy::Result<Self> {
         let fields = build_schema();
 
@@ -81,19 +87,47 @@ impl SearchEngine {
         let searcher = self.reader.searcher();
         let query_parser = QueryParser::for_index(&self.index, vec![self.fields.content]);
 
-        let query = query_parser.parse_query(query_str)?;
-        let top_docs = searcher.search(&query, &TopDocs::with_limit(limit))?;
+        // Lenient parsing: stray quotes, brackets or colons in a user query
+        // must not turn into a hard error.
+        let (query, _parse_errors) = query_parser.parse_query_lenient(query_str);
 
-        let mut results = Vec::new();
+        // Several chunks of one file can match, so over-fetch generously and
+        // de-duplicate. Fetching only a few times `limit` could return fewer
+        // distinct files than requested.
+        let top_docs = searcher.search(&query, &TopDocs::with_limit(limit * 20))?;
+
+        let mut results: Vec<String> = Vec::new();
 
         for (_score, doc_address) in top_docs {
             let retrieved_doc: TantivyDocument = searcher.doc(doc_address)?;
 
             if let Some(OwnedValue::Str(path_str)) = retrieved_doc.get_first(self.fields.path) {
-                results.push(path_str.clone());
+                let file_path = strip_chunk_suffix(path_str).to_string();
+                if !results.contains(&file_path) {
+                    results.push(file_path);
+                    if results.len() == limit {
+                        break;
+                    }
+                }
             }
         }
 
         Ok(results)
+    }
+}
+
+/// `dir/file.txt#chunk3` -> `dir/file.txt`. A name that merely ends in
+/// `#chunk` (no digits after it) is returned unchanged.
+fn strip_chunk_suffix(path: &str) -> &str {
+    match path.rfind("#chunk") {
+        Some(pos) => {
+            let digits = &path[pos + "#chunk".len()..];
+            if !digits.is_empty() && digits.bytes().all(|b| b.is_ascii_digit()) {
+                &path[..pos]
+            } else {
+                path
+            }
+        }
+        None => path,
     }
 }
